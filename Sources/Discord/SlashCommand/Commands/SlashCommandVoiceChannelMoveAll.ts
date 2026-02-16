@@ -15,7 +15,8 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 	private static readonly SET_CHANNEL_COOLDOWN = 1000;
 
 	override async onExecute(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>): Promise<void> {
-		if (!interaction.guild) return;
+		if (!interaction.inCachedGuild()) return;
+		if (!(await SlashCommand.checkPermission(interaction, interaction.client.discordBOT.app.readConfig().permission.baka.level))) return;
 
 		const _from = interaction.options.getChannel("from", true);
 		if (_from.type !== Discord.ChannelType.GuildVoice) {
@@ -93,7 +94,7 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 			return;
 		}
 
-		const botID = interaction.client.user!.id;
+		const botID = interaction.client.user.id;
 		const botMember = from.members.get(botID);
 		if (!botMember) return;
 

@@ -13,7 +13,8 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 	override readonly command = undefined;
 
 	override async onExecute(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>): Promise<void> {
-		if (!interaction.guild) return;
+		if (!interaction.inCachedGuild()) return;
+		if (!(await SlashCommand.checkPermission(interaction, interaction.client.discordBOT.app.readConfig().permission.baka.level))) return;
 
 		const target = interaction.options.getUser("target", true);
 		const targetMember = interaction.guild.members.cache.get(target.id) ?? await interaction.guild.members.fetch(target.id);
