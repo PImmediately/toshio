@@ -21,7 +21,7 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 		const _from = interaction.options.getChannel("from", true);
 		if (_from.type !== Discord.ChannelType.GuildVoice) {
 			await interaction.reply({
-				content: "移動元チャンネルはボイスチャンネルでなければなりません。",
+				content: "移動元チャンネルはボイスチャンネルである必要があります。",
 				flags: [
 					Discord.MessageFlags.Ephemeral
 				]
@@ -33,7 +33,7 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 		const _to = interaction.options.getChannel("to", true);
 		if (_to.type !== Discord.ChannelType.GuildVoice) {
 			await interaction.reply({
-				content: "移動先チャンネルはボイスチャンネルでなければなりません。",
+				content: "移動先チャンネルはボイスチャンネルである必要があります。",
 				flags: [
 					Discord.MessageFlags.Ephemeral
 				]
@@ -53,7 +53,7 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 		}
 		if (from.members.size === 0) {
 			await interaction.reply({
-				content: "移動元チャンネルにユーザーがいません。",
+				content: "移動元チャンネルにメンバーがいません。",
 				flags: [
 					Discord.MessageFlags.Ephemeral
 				]
