@@ -14,6 +14,7 @@ export default class DiscordBOT {
 		const intents = new Discord.IntentsBitField();
 		intents.add(Discord.IntentsBitField.Flags.Guilds);
 		intents.add(Discord.IntentsBitField.Flags.GuildWebhooks);
+		intents.add(Discord.IntentsBitField.Flags.GuildVoiceStates);
 		intents.add(Discord.IntentsBitField.Flags.GuildMessages);
 		intents.add(Discord.IntentsBitField.Flags.MessageContent);
 
