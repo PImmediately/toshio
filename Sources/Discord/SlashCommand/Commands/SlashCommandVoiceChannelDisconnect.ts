@@ -46,11 +46,7 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 			return;
 		}
 
-		await interaction.deferReply({
-			flags: [
-				Discord.MessageFlags.Ephemeral
-			]
-		});
+		await interaction.deferReply();
 
 		const connection = DiscordVoice.joinVoiceChannel({
 			channelId: targetMember.voice.channel.id,
@@ -83,7 +79,7 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 		connection.destroy();
 
 		await interaction.editReply({
-			content: "実行が完了しました。"
+			content: `${Discord.userMention(targetMember.id)} は ${Discord.channelMention(interaction.channelId)} で首を括った。`
 		});
 	}
 

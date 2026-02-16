@@ -72,11 +72,7 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 			return;
 		}
 
-		await interaction.deferReply({
-			flags: [
-				Discord.MessageFlags.Ephemeral
-			]
-		});
+		await interaction.deferReply();
 
 		const connection = DiscordVoice.joinVoiceChannel({
 			channelId: from.id,
@@ -121,7 +117,7 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 		connection.destroy();
 
 		await interaction.editReply({
-			content: "実行が完了しました。"
+			content: `${Discord.channelMention(from.id)} にいた${targetMembers.size}人は最高速度でブチ抜かれた。`
 		});
 	}
 
