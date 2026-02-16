@@ -41,15 +41,15 @@ export default class SlashCommandVoiceChannel extends SlashCommand {
 				.setDescription("移動元ボイスチャンネルにいる全メンバーを移動先ボイスチャンネルに移動します。")
 				.addChannelOption((option) => {
 					return option
-						.setName("from")
-						.setDescription("移動元ボイスチャンネル")
+						.setName("to")
+						.setDescription("移動先ボイスチャンネル")
 						.setRequired(true);
 				})
 				.addChannelOption((option) => {
 					return option
-						.setName("to")
-						.setDescription("移動先ボイスチャンネル")
-						.setRequired(true);
+						.setName("from")
+						.setDescription("移動元ボイスチャンネル")
+						.setRequired(false);
 				});
 		});
 

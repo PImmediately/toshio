@@ -18,20 +18,32 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 		if (!interaction.inCachedGuild()) return;
 		if (!(await SlashCommand.checkPermission(interaction, interaction.client.discordBOT.app.readConfig().permission.baka.level))) return;
 
-		const _from = interaction.options.getChannel("from", true);
-		if (_from.type !== Discord.ChannelType.GuildVoice) {
-			await interaction.reply({
-				content: "移動元チャンネルはボイスチャンネルである必要があります。",
-				flags: [
-					Discord.MessageFlags.Ephemeral
-				]
-			});
-			return;
+		let from = interaction.options.getChannel("from");
+		if (from) {
+			if (!from.isVoiceBased()) {
+				await interaction.reply({
+					content: "移動元チャンネルはボイスチャンネルである必要があります。",
+					flags: [
+						Discord.MessageFlags.Ephemeral
+					]
+				});
+				return;
+			}
+		} else {
+			from = interaction.member.voice.channel;
+			if (!from) {
+				await interaction.reply({
+					content: "チャンネルが見つかりません。",
+					flags: [
+						Discord.MessageFlags.Ephemeral
+					]
+				});
+				return;
+			}
 		}
-		const from = _from as Discord.VoiceChannel;
 
-		const _to = interaction.options.getChannel("to", true);
-		if (_to.type !== Discord.ChannelType.GuildVoice) {
+		const to = interaction.options.getChannel("to", true);
+		if (!to.isVoiceBased()) {
 			await interaction.reply({
 				content: "移動先チャンネルはボイスチャンネルである必要があります。",
 				flags: [
@@ -40,7 +52,6 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 			});
 			return;
 		}
-		const to = _to as Discord.VoiceChannel;
 
 		if (from.id === to.id) {
 			await interaction.reply({
