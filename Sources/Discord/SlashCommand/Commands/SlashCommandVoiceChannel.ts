@@ -21,8 +21,7 @@ export default class SlashCommandVoiceChannel extends SlashCommand {
 				.addUserOption((option) => {
 					return option
 						.setName("target")
-						.setDescription("メンバー")
-						.setRequired(true);
+						.setDescription("メンバー");
 				});
 		})
 		.addSubcommand((group) => {

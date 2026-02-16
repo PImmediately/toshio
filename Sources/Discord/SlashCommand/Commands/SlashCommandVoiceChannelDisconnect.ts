@@ -14,11 +14,15 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 
 	override async onExecute(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>): Promise<void> {
 		if (!interaction.inCachedGuild()) return;
-		if (!(await SlashCommand.checkPermission(interaction, interaction.client.discordBOT.app.readConfig().permission.baka.level))) return;
 
-		const target = interaction.options.getUser("target", true);
-		const targetMember = interaction.guild.members.cache.get(target.id) ?? await interaction.guild.members.fetch(target.id);
-		if (!targetMember) {
+		let target = interaction.options.getMember("target");
+		if (target) {
+			if (!(await SlashCommand.checkPermission(interaction, interaction.client.discordBOT.app.readConfig().permission.baka.level))) return;
+		} else {
+			target = interaction.member;
+		}
+
+		if (!target) {
 			await interaction.reply({
 				content: "指定されたメンバーが見つかりません。",
 				flags: [
@@ -27,7 +31,7 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 			});
 			return;
 		}
-		if (!targetMember.voice.channel) {
+		if (!target.voice.channel) {
 			await interaction.reply({
 				content: "指定されたメンバーはボイスチャンネルに接続していません。",
 				flags: [
@@ -36,7 +40,7 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 			});
 			return;
 		}
-		if (targetMember.id === interaction.client.user.id) {
+		if (target.id === interaction.client.user.id) {
 			await interaction.reply({
 				content: "この操作は実行できません。",
 				flags: [
@@ -49,7 +53,7 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 		await interaction.deferReply();
 
 		const connection = DiscordVoice.joinVoiceChannel({
-			channelId: targetMember.voice.channel.id,
+			channelId: target.voice.channel.id,
 			guildId: interaction.guild.id,
 			adapterCreator: interaction.guild.voiceAdapterCreator,
 			selfMute: false,
@@ -75,11 +79,11 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 			return;
 		}
 
-		await targetMember.voice.disconnect(`${interaction.user.id} によって切断されました。`);
+		await target.voice.disconnect(`${interaction.user.id} によって切断されました。`);
 		connection.destroy();
 
 		await interaction.editReply({
-			content: `${Discord.userMention(targetMember.id)} は ${Discord.channelMention(interaction.channelId)} で首を括った。`
+			content: `${Discord.userMention(target.id)} は ${Discord.channelMention(interaction.channelId)} で首を括った。`
 		});
 	}
 
