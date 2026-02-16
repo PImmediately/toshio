@@ -1,15 +1,28 @@
 import Discord from "discord.js";
 import SlashCommand from "./SlashCommand";
 
+import SlashCommandVoiceChannelDisconnect from "./SlashCommandVoiceChannelDisconnect";
 import SlashCommandVoiceChannelMoveAll from "./SlashCommandVoiceChannelMoveAll";
 
 export default class SlashCommandVoiceChannel extends SlashCommand {
 
+	private readonly voiceChannelDisconnect = new SlashCommandVoiceChannelDisconnect();
 	private readonly voiceChannelMoveAll = new SlashCommandVoiceChannelMoveAll();
 
 	override readonly command = new Discord.SlashCommandBuilder()
 		.setName("vc")
 		.setDescription("ボイスチャンネルに関するコマンド")
+		.addSubcommand((group) => {
+			return group
+				.setName("disconnect")
+				.setDescription("ボイスチャンネルにいるメンバーを切断します。")
+				.addUserOption((option) => {
+					return option
+						.setName("target")
+						.setDescription("メンバー")
+						.setRequired(true);
+				});
+		})
 		.addSubcommand((group) => {
 			return group
 				.setName("move-all")
@@ -30,6 +43,10 @@ export default class SlashCommandVoiceChannel extends SlashCommand {
 
 	override onExecute(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>): void {
 		switch (interaction.options.getSubcommand()) {
+			case "disconnect": {
+				this.voiceChannelDisconnect.onExecute(interaction);
+				return;
+			}
 			case "move-all": {
 				this.voiceChannelMoveAll.onExecute(interaction);
 				return;
