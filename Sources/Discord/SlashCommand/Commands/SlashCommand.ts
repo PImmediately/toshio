@@ -12,11 +12,14 @@ export default abstract class SlashCommand {
 	public onExecute(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>): void {
 	}
 
-	static async checkDeveloperPermissions(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>): Promise<boolean> {
-		if (interaction.user.id === process.env.DISCORD_BOT_DEVELOPER_CLIENT_ID) return true;
+	static async checkPermission(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>, requiredLevel: number): Promise<boolean> {
+		if (!interaction.inCachedGuild()) throw new TypeError("Interaction member is null.");
+
+		const memberPermissionLevel = interaction.client.discordBOT.getMemberPermissionLevel(interaction.member);
+		if (memberPermissionLevel >= requiredLevel) return true;
 
 		await interaction.reply({
-			content: "アクセス拒否されました：管理者のみ使用可能なコマンドです。",
+			content: "アクセス拒否されました。",
 			flags: [
 				Discord.MessageFlags.Ephemeral
 			]

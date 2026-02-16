@@ -1,0 +1,28 @@
+guild:
+  # 本番
+  production: '1434174296724607020'
+  # 開発
+  development: '1289036350884024380'
+
+permission:
+  # メンバー
+  default:
+    level: 0
+  # 囚人
+  prisoner:
+    level: -1
+    role: '1436677752689528945'
+  # ばか
+  baka:
+    level: 1
+    role: '1434530191916667070'
+  # 管理者権限持ち
+  administrator:
+    level: 2
+  # サーバー所有者
+  guild-owner:
+    level: 3
+  # ボット開発者
+  bot-developer:
+    level: 99
+    user: '1346945401474908251'

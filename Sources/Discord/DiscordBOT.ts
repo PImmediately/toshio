@@ -116,4 +116,19 @@ export default class DiscordBOT {
 		return commands;
 	}
 
+	public getMemberPermissionLevel(member: Discord.GuildMember): number {
+		const config = this.app.readConfig();
+
+		if (member.id === config.permission["bot-developer"].user) return config.permission["bot-developer"].level;
+
+		if (member.guild.id === config.guild.development) return +Infinity;
+		if (member.guild.id !== config.guild.production) return -Infinity;
+		
+		if (member.id === member.guild.ownerId) return config.permission["guild-owner"].level;
+		if (member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)) return config.permission.administrator.level;
+		if (member.roles.cache.has(config.permission.baka.role)) return config.permission.baka.level;
+		if (member.roles.cache.has(config.permission.prisoner.role)) return config.permission.prisoner.level;
+		return config.permission.default.level;
+	}
+
 }
