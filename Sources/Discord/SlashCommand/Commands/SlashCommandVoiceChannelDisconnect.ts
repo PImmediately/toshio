@@ -3,7 +3,7 @@ import * as DiscordVoice from "@discordjs/voice";
 import SlashCommand from "./SlashCommand";
 
 import fs from "node:fs";
-import getNativePath from "../../../TypeScript/Path";
+import getNativePath from "./../../../TypeScript/Path";
 import path from "node:path";
 
 const voicePath = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_shindaraeenen.wav"));
