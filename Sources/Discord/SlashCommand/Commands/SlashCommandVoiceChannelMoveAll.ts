@@ -12,7 +12,7 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 
 	override readonly command = undefined;
 
-	private static readonly SET_CHANNEL_COOLDOWN = 1000;
+	private static readonly SET_CHANNEL_COOLDOWN = 200;
 
 	override async onExecute(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>): Promise<void> {
 		if (!interaction.inCachedGuild()) return;
