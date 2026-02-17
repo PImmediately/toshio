@@ -1,5 +1,5 @@
 import Discord from "discord.js";
-import * as DiscordVoice from "@discordjs/voice";
+import VoiceClient from "./../../VoiceClient";
 import SlashCommand from "./SlashCommand";
 
 import fs from "node:fs";
@@ -74,51 +74,34 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 
 		await interaction.deferReply();
 
-		const connection = DiscordVoice.joinVoiceChannel({
-			channelId: from.id,
-			guildId: interaction.guild.id,
-			adapterCreator: interaction.guild.voiceAdapterCreator,
-			selfMute: false,
-			selfDeaf: false
-		});
-		try {
-			await DiscordVoice.entersState(connection, DiscordVoice.VoiceConnectionStatus.Ready, 10_000);
-		} catch (error) {
-			console.error(error);
-			connection.destroy();
-			return;
-		}
+		const voiceClient = new VoiceClient(interaction.guild, from);
+		voiceClient.on("connect", async (connectionID) => {
+			const a = (): boolean => connectionID === voiceClient.getConnectionID();
 
-		const player = DiscordVoice.createAudioPlayer();
-		const resource = DiscordVoice.createAudioResource(fs.createReadStream(voicePath));
-		player.play(resource);
-		connection.subscribe(player);
-		try {
-			await DiscordVoice.entersState(player, DiscordVoice.AudioPlayerStatus.Idle, 10_000);
-		} catch (error) {
-			console.error(error);
-			connection.destroy();
-			return;
-		}
+			if (a()) await voiceClient.play(() => fs.createReadStream(voicePath));
 
-		const botID = interaction.client.user.id;
-		const botMember = from.members.get(botID);
-		if (!botMember) return;
+			if (a()) {
+				const targetMembers = from.members.filter(member => member.id !== interaction.client.user.id);
+				for (const member of targetMembers.values()) {
+					try {
+						member.voice.setChannel(to, `${interaction.user.id} によって移動されました。`);
+					} catch (error) {
+						console.error(error);
+					}
+					await new Promise((resolve) => setTimeout(resolve, SlashCommandVoiceChannelMoveAll.SET_CHANNEL_COOLDOWN));
+				}
 
-		const targetMembers = from.members.filter(member => member.id !== botMember.id);
-		for (const member of targetMembers.values()) {
-			try {
-				member.voice.setChannel(to, `${interaction.user.id} によって移動されました。`);
-			} catch (error) {
-				console.error(error);
+				await interaction.editReply({
+					content: `${Discord.channelMention(from.id)} にいた${targetMembers.size}人は最高速度でブチ抜かれた。`
+				});
 			}
-			await new Promise((resolve) => setTimeout(resolve, SlashCommandVoiceChannelMoveAll.SET_CHANNEL_COOLDOWN));
-		}
-		connection.destroy();
 
-		await interaction.editReply({
-			content: `${Discord.channelMention(from.id)} にいた${targetMembers.size}人は最高速度でブチ抜かれた。`
+			if (a()) voiceClient.destroy();
 		});
+		voiceClient.on("disconnect", async () => {
+			await voiceClient.connect();
+		});
+		await voiceClient.connect();
 	}
 
 }

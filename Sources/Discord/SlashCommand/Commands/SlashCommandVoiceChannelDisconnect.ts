@@ -1,5 +1,5 @@
 import Discord from "discord.js";
-import * as DiscordVoice from "@discordjs/voice";
+import VoiceClient from "./../../VoiceClient";
 import SlashCommand from "./SlashCommand";
 
 import fs from "node:fs";
@@ -52,39 +52,26 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 
 		await interaction.deferReply();
 
-		const connection = DiscordVoice.joinVoiceChannel({
-			channelId: target.voice.channel.id,
-			guildId: interaction.guild.id,
-			adapterCreator: interaction.guild.voiceAdapterCreator,
-			selfMute: false,
-			selfDeaf: false
+		const voiceClient = new VoiceClient(interaction.guild, target.voice.channel);
+		voiceClient.on("connect", async (connectionID) => {
+			const a = (): boolean => connectionID === voiceClient.getConnectionID();
+
+			if (a()) await voiceClient.play(() => fs.createReadStream(voicePath));
+
+			if (a()) {
+				await target.voice.disconnect(`${interaction.user.id} によって切断されました。`);
+
+				await interaction.editReply({
+					content: `${Discord.userMention(target.id)} は ${Discord.channelMention(interaction.channelId)} で首を括った。`
+				});
+			}
+
+			if (a()) voiceClient.destroy();
 		});
-		try {
-			await DiscordVoice.entersState(connection, DiscordVoice.VoiceConnectionStatus.Ready, 10_000);
-		} catch (error) {
-			console.error(error);
-			connection.destroy();
-			return;
-		}
-
-		const player = DiscordVoice.createAudioPlayer();
-		const resource = DiscordVoice.createAudioResource(fs.createReadStream(voicePath));
-		player.play(resource);
-		connection.subscribe(player);
-		try {
-			await DiscordVoice.entersState(player, DiscordVoice.AudioPlayerStatus.Idle, 10_000);
-		} catch (error) {
-			console.error(error);
-			connection.destroy();
-			return;
-		}
-
-		await target.voice.disconnect(`${interaction.user.id} によって切断されました。`);
-		connection.destroy();
-
-		await interaction.editReply({
-			content: `${Discord.userMention(target.id)} は ${Discord.channelMention(interaction.channelId)} で首を括った。`
+		voiceClient.on("disconnect", async () => {
+			await voiceClient.connect();
 		});
+		await voiceClient.connect();
 	}
 
 }
