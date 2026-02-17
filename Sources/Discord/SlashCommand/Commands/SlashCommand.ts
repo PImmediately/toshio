@@ -13,13 +13,13 @@ export default abstract class SlashCommand {
 	}
 
 	static async checkPermission(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>, requiredLevel: number): Promise<boolean> {
-		if (!interaction.inCachedGuild()) throw new TypeError("Interaction member is null.");
+		if (!interaction.inCachedGuild()) throw new TypeError("Interaction is not in a cached guild.");
 
 		const memberPermissionLevel = interaction.client.discordBOT.getMemberPermissionLevel(interaction.member);
 		if (memberPermissionLevel >= requiredLevel) return true;
 
 		await interaction.reply({
-			content: "アクセス拒否されました。",
+			content: "権限が不足しています。",
 			flags: [
 				Discord.MessageFlags.Ephemeral
 			]
