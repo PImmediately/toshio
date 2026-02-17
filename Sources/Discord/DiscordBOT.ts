@@ -6,9 +6,17 @@ import path from "node:path";
 import type { Instantiable } from "./../TypeScript/UtilTypes";
 import type SlashCommand from "./SlashCommand/Commands/SlashCommand";
 
-export default class DiscordBOT {
+import type Feature from "./Feature/Feature";
+import FeatureManager from "./Feature/FeatureManager";
 
+const INSTALLED_FEATURES: (typeof Feature)[] = [
+];
+
+export default class DiscordBOT {
+	
 	public readonly client;
+
+	public readonly featureManager: FeatureManager;
 
 	public constructor(public readonly app: Application) {
 		const intents = new Discord.IntentsBitField();
@@ -51,6 +59,8 @@ export default class DiscordBOT {
 				this.onSlashCommandExecute(interaction);
 			}
 		});
+
+		this.featureManager = new FeatureManager(this, [...INSTALLED_FEATURES]);
 	}
 
 	public async login(token: string): Promise<void> {
