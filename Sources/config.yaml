@@ -26,3 +26,9 @@ permission:
   bot-developer:
     level: 99
     user: '1346945401474908251'
+
+features:
+  # 罠チャンネル
+  trap-channel:
+    enabled: true
+    channel: '1473234130174083072'

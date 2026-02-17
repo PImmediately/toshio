@@ -31,6 +31,12 @@ export interface Configuration {
 			user: string;
 		};
 	};
+	features: {
+		"trap-channel": {
+			enabled: boolean;
+			channel: string;
+		};
+	};
 }
 
 export function read(): Configuration {

@@ -9,7 +9,10 @@ import type SlashCommand from "./SlashCommand/Commands/SlashCommand";
 import type Feature from "./Feature/Feature";
 import FeatureManager from "./Feature/FeatureManager";
 
+import FeatureTrapChannel from "./Feature/trap-channel";
+
 const INSTALLED_FEATURES: (typeof Feature)[] = [
+	FeatureTrapChannel,
 ];
 
 export default class DiscordBOT {
