@@ -19,17 +19,17 @@ export interface Configuration {
 		baka: {
 			level: number;
 			role: string;
-		}
+		};
 		administrator: {
 			level: number;
 		};
 		"guild-owner": {
 			level: number;
-		}
+		};
 		"bot-developer": {
 			level: number;
 			user: string;
-		}
+		};
 	};
 }
 
