@@ -6,7 +6,8 @@ import fs from "node:fs";
 import getNativePath from "./../../../TypeScript/Path";
 import path from "node:path";
 
-const voicePath = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_attigawa.wav"));
+const voicePath1 = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_attigawa.wav"));
+const voicePath2 = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_hitonokokoro.wav"));
 
 export default class SlashCommandVoiceChannelDisband extends SlashCommand {
 
@@ -54,11 +55,17 @@ export default class SlashCommandVoiceChannelDisband extends SlashCommand {
 
 		await interaction.deferReply();
 
+		let connectionCount: number = 0;
 		const voiceClient = new VoiceClient(interaction.guild, channel);
 		voiceClient.on("connect", async (connectionID) => {
+			connectionCount++;
 			const a = (): boolean => connectionID === voiceClient.getConnectionID();
 
-			if (a()) await voiceClient.play(() => fs.createReadStream(voicePath));
+			if (a()) {
+				await voiceClient.play(() => {
+					return fs.createReadStream(connectionCount === 1 ? voicePath1 : voicePath2);
+				});
+			}
 
 			if (a()) {
 				const targetMembers = channel.members.filter(member => member.id !== interaction.client.user.id);
