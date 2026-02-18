@@ -99,7 +99,7 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 				}
 
 				await interaction.editReply({
-					content: `${Discord.channelMention(from.id)} にいた${targetMembers.size}人は最高速度でブチ抜かれた。`
+					content: `${Discord.channelMention(from.id)} にいた${targetMembers.size}人は最高速度で ${Discord.channelMention(to.id)} までブチ抜かれた。`
 				});
 			}
 

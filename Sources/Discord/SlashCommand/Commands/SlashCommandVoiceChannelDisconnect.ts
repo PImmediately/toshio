@@ -69,7 +69,7 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 				await target.voice.disconnect(`${interaction.user.id} によって切断されました。`);
 
 				await interaction.editReply({
-					content: `${Discord.userMention(target.id)} は ${Discord.channelMention(interaction.channelId)} で首を括った。`
+					content: `${Discord.userMention(target.id)} は ${Discord.channelMention(target.voice.channel!.id)} で首を括った。`
 				});
 			}
 
