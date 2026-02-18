@@ -32,3 +32,8 @@ feature:
   trap-channel:
     enabled: true
     channel: '1473234130174083072'
+
+# ログ
+log:
+  enabled: true
+  channel: '1436680249206112307'

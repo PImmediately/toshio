@@ -37,6 +37,10 @@ export interface Configuration {
 			channel: string;
 		};
 	};
+	log: {
+		enabled: boolean;
+		channel: string;
+	};
 }
 
 export function read(): Configuration {

@@ -129,6 +129,12 @@ export default class DiscordBOT {
 		return commands;
 	}
 
+	public async fetchChannel(channelID: string): Promise<Discord.Channel | null> {
+		const cached = this.client.channels.cache.get(channelID);
+		if (cached) return cached;
+		return await this.client.channels.fetch(channelID);
+	}
+
 	public getMemberPermissionLevel(member: Discord.GuildMember): number {
 		const config = this.app.readConfig();
 
@@ -142,6 +148,16 @@ export default class DiscordBOT {
 		if (member.roles.cache.has(config.permission.baka.role)) return config.permission.baka.level;
 		if (member.roles.cache.has(config.permission.prisoner.role)) return config.permission.prisoner.level;
 		return config.permission.default.level;
+	}
+
+	public async log(message: string | Discord.MessagePayload | Discord.MessageCreateOptions): Promise<void> {
+		const config = this.app.readConfig();
+		if (!config.log.enabled) return;
+
+		const channel = await this.fetchChannel(config.log.channel);
+		if (!channel) throw new Error(`Log channel is not found: ${config.log.channel}`);
+		if (!channel.isSendable()) throw new Error(`Log channel is not sendable: ${config.log.channel}`);
+		await channel.send(message);
 	}
 
 }
