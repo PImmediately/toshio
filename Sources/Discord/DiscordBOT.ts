@@ -16,7 +16,7 @@ const INSTALLED_FEATURES: (typeof Feature)[] = [
 ];
 
 export default class DiscordBOT {
-	
+
 	public readonly client;
 
 	public readonly featureManager: FeatureManager;
@@ -136,7 +136,7 @@ export default class DiscordBOT {
 
 		if (member.guild.id === config.guild.development) return +Infinity;
 		if (member.guild.id !== config.guild.production) return -Infinity;
-		
+
 		if (member.id === member.guild.ownerId) return config.permission["guild-owner"].level;
 		if (member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)) return config.permission.administrator.level;
 		if (member.roles.cache.has(config.permission.baka.role)) return config.permission.baka.level;
