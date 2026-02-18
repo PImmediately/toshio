@@ -75,6 +75,9 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 
 		await interaction.deferReply();
 
+		const conditionHasRole = interaction.options.getRole("condition_has_role");
+		const conditionNot = interaction.options.getBoolean("condition_not") ?? false;
+
 		let connectionCount: number = 0;
 		const voiceClient = new VoiceClient(interaction.guild, from);
 		voiceClient.on("connect", async (connectionID) => {
@@ -88,7 +91,14 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 			}
 
 			if (a()) {
-				const targetMembers = from.members.filter(member => member.id !== interaction.client.user.id);
+				const targetMembers = from.members.filter((member => {
+					if (member.id === interaction.client.user.id) return false;
+					if (conditionHasRole) {
+						const hasRole = member.roles.cache.has(conditionHasRole.id);
+						return conditionNot ? !hasRole : hasRole;
+					}
+					return true;
+				}));
 				for (const member of targetMembers.values()) {
 					try {
 						member.voice.setChannel(to, `${interaction.user.id} によって移動されました。`);

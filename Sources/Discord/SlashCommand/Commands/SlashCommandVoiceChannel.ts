@@ -49,6 +49,18 @@ export default class SlashCommandVoiceChannel extends SlashCommand {
 						.setName("from")
 						.setDescription("移動元ボイスチャンネル")
 						.setRequired(false);
+				})
+				.addRoleOption((option) => {
+					return option
+						.setName("condition_has_role")
+						.setDescription("条件：移動対象のロール")
+						.setRequired(false);
+				})
+				.addBooleanOption((option) => {
+					return option
+						.setName("condition_not")
+						.setDescription("条件を反転させる")
+						.setRequired(false);
 				});
 		});
 
