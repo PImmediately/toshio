@@ -27,7 +27,7 @@ permission:
     level: 99
     user: '1346945401474908251'
 
-features:
+feature:
   # 罠チャンネル
   trap-channel:
     enabled: true

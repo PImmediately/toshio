@@ -31,7 +31,7 @@ export interface Configuration {
 			user: string;
 		};
 	};
-	features: {
+	feature: {
 		"trap-channel": {
 			enabled: boolean;
 			channel: string;

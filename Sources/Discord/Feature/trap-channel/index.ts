@@ -11,11 +11,11 @@ export default class FeatureTrapChannel extends Feature {
 
 	override async onMessageCreate(message: Discord.Message): Promise<void> {
 		const config = this.featureManager.discordBot.app.readConfig();
-		if (!config.features["trap-channel"].enabled) return;
-		if (!config.features["trap-channel"].channel) return;
+		if (!config.feature["trap-channel"].enabled) return;
+		if (!config.feature["trap-channel"].channel) return;
 
 		if (message.guildId !== config.guild.production) return;
-		if (message.channelId !== config.features["trap-channel"].channel) return;
+		if (message.channelId !== config.feature["trap-channel"].channel) return;
 		if (message.author.bot) return;
 
 		if (!message.member) return;
