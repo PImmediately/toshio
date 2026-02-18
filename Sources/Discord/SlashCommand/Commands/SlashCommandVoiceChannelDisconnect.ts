@@ -32,7 +32,9 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 			});
 			return;
 		}
-		if (!target.voice.channel) {
+
+		const channel = target.voice.channel;
+		if (!channel) {
 			await interaction.reply({
 				content: "指定されたメンバーはボイスチャンネルに接続していません。",
 				flags: [
@@ -54,7 +56,7 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 		await interaction.deferReply();
 
 		let connectionCount: number = 0;
-		const voiceClient = new VoiceClient(interaction.guild, target.voice.channel);
+		const voiceClient = new VoiceClient(interaction.guild, channel);
 		voiceClient.on("connect", async (connectionID) => {
 			connectionCount++;
 			const a = (): boolean => connectionID === voiceClient.getConnectionID();
@@ -69,7 +71,7 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 				await target.voice.disconnect(`${interaction.user.id} によって切断されました。`);
 
 				await interaction.editReply({
-					content: `${Discord.userMention(target.id)} は ${Discord.channelMention(target.voice.channel!.id)} で首を括った。`
+					content: `${Discord.userMention(target.id)} は ${Discord.channelMention(channel.id)} で首を括った。`
 				});
 			}
 
