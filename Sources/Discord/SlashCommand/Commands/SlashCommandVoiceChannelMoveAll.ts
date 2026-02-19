@@ -19,7 +19,7 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 		if (!interaction.inCachedGuild()) return;
 		if (!(await SlashCommand.checkPermission(interaction, interaction.client.discordBOT.app.readConfig().permission.baka.level))) return;
 
-		let from = interaction.options.getChannel("from");
+		let from: Discord.Channel | null = interaction.options.getChannel("from", false, [Discord.ChannelType.GuildVoice]);
 		if (from) {
 			if (!from.isVoiceBased()) {
 				await interaction.reply({
@@ -43,7 +43,7 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 			}
 		}
 
-		const to = interaction.options.getChannel("to", true);
+		const to = interaction.options.getChannel("to", true, [Discord.ChannelType.GuildVoice]);
 		if (!to.isVoiceBased()) {
 			await interaction.reply({
 				content: "移動先チャンネルはボイスチャンネルである必要があります。",

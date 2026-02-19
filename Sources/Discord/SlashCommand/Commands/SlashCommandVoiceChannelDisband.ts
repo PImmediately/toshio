@@ -19,7 +19,7 @@ export default class SlashCommandVoiceChannelDisband extends SlashCommand {
 		if (!interaction.inCachedGuild()) return;
 		if (!(await SlashCommand.checkPermission(interaction, interaction.client.discordBOT.app.readConfig().permission.baka.level))) return;
 
-		let channel = interaction.options.getChannel("target");
+		let channel: Discord.Channel | null = interaction.options.getChannel("target", false, [Discord.ChannelType.GuildVoice]);
 		if (channel) {
 			if (!channel.isVoiceBased()) {
 				await interaction.reply({
