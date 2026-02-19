@@ -75,7 +75,7 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 
 		await interaction.deferReply();
 
-		const conditionHasRole = interaction.options.getRole("condition_has_role");
+		const conditionMinPermissionLevel = interaction.options.getInteger("condition_min_permission_level", false);
 		const conditionNot = interaction.options.getBoolean("condition_not") ?? false;
 
 		let connectionCount: number = 0;
@@ -98,9 +98,9 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 
 			const targetMembers = from.members.filter((member => {
 				if (member.id === interaction.client.user.id) return false;
-				if (conditionHasRole) {
-					const hasRole = member.roles.cache.has(conditionHasRole.id);
-					return conditionNot ? !hasRole : hasRole;
+				if (conditionMinPermissionLevel !== null) {
+					const permissionLevel = interaction.client.discordBOT.getMemberPermissionLevel(member);
+					return conditionNot ? permissionLevel < conditionMinPermissionLevel : permissionLevel >= conditionMinPermissionLevel;
 				}
 				return true;
 			}));

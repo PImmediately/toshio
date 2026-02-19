@@ -50,10 +50,10 @@ export default class SlashCommandVoiceChannel extends SlashCommand {
 						.setDescription("移動元ボイスチャンネル")
 						.setRequired(false);
 				})
-				.addRoleOption((option) => {
+				.addIntegerOption((option) => {
 					return option
-						.setName("condition_has_role")
-						.setDescription("条件：移動対象のロール")
+						.setName("condition_min_permission_level")
+						.setDescription("条件：この権限レベル以上のメンバーのみを対象")
 						.setRequired(false);
 				})
 				.addBooleanOption((option) => {
