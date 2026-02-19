@@ -26,7 +26,7 @@ export default class VoiceClient extends EventEmitter<VoiceClientEvents> {
 
 	public getConnectionID(): number { return this.connectionID; }
 
-	public async connect(): Promise<void> {
+	public async connect(timeout: number = 5_000): Promise<void> {
 		if (this.destroyed) return;
 
 		const connectionID = ++this.connectionID;
@@ -48,11 +48,11 @@ export default class VoiceClient extends EventEmitter<VoiceClientEvents> {
 			if (connectionID === this.getConnectionID()) this.emit("disconnect", connectionID);
 		});
 
-		await DiscordVoice.entersState(this.connection, DiscordVoice.VoiceConnectionStatus.Ready, 10_000);
+		await DiscordVoice.entersState(this.connection, DiscordVoice.VoiceConnectionStatus.Ready, timeout);
 		if (connectionID === this.getConnectionID()) this.emit("connect", connectionID);
 	}
 
-	public async play(factory: () => fs.ReadStream): Promise<void> {
+	public async play(factory: () => fs.ReadStream, timeout: number = 5_000): Promise<void> {
 		if (!this.connection) throw new Error("Voice connection not established.");
 
 		this.player?.stop(true);
@@ -67,7 +67,7 @@ export default class VoiceClient extends EventEmitter<VoiceClientEvents> {
 		this.player.play(resource);
 		this.connection.subscribe(this.player);
 
-		await DiscordVoice.entersState(this.player, DiscordVoice.AudioPlayerStatus.Idle, 30_000);
+		await DiscordVoice.entersState(this.player, DiscordVoice.AudioPlayerStatus.Idle, timeout);
 	}
 
 	public destroy(): void {
