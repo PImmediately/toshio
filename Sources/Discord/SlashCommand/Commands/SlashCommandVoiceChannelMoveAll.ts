@@ -81,24 +81,31 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 		let connectionCount: number = 0;
 		const voiceClient = new VoiceClient(interaction.guild, from);
 		voiceClient.on("connect", async (connectionID) => {
+			let hasError: boolean = false;
 			connectionCount++;
 			const a = (): boolean => connectionID === voiceClient.getConnectionID();
 
 			if (a()) {
-				await voiceClient.play(() => {
-					return fs.createReadStream(connectionCount === 1 ? voicePath1 : voicePath2);
-				});
+				try {
+					await voiceClient.play(() => {
+						return fs.createReadStream(connectionCount === 1 ? voicePath1 : voicePath2);
+					});
+				} catch (error) {
+					console.error(error);
+					hasError = true;
+				}
 			}
 
-			if (a()) {
-				const targetMembers = from.members.filter((member => {
-					if (member.id === interaction.client.user.id) return false;
-					if (conditionHasRole) {
-						const hasRole = member.roles.cache.has(conditionHasRole.id);
-						return conditionNot ? !hasRole : hasRole;
-					}
-					return true;
-				}));
+			const targetMembers = from.members.filter((member => {
+				if (member.id === interaction.client.user.id) return false;
+				if (conditionHasRole) {
+					const hasRole = member.roles.cache.has(conditionHasRole.id);
+					return conditionNot ? !hasRole : hasRole;
+				}
+				return true;
+			}));
+
+			if ((a()) && (!hasError)) {
 				for (const member of targetMembers.values()) {
 					try {
 						member.voice.setChannel(to, `${interaction.user.id} によって移動されました。`);
@@ -113,7 +120,17 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 				});
 			}
 
-			if (a()) voiceClient.destroy();
+			if (a()) {
+				try {
+					voiceClient.destroy();
+				} catch (error) {
+					console.error(error);
+				}
+			}
+
+			if (hasError) await interaction.editReply({
+				content: `最高速度で ${Discord.channelMention(from.id)} を通過した。`
+			});
 		});
 		voiceClient.on("disconnect", async () => {
 			await voiceClient.connect();

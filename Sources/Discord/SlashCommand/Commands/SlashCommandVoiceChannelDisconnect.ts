@@ -58,16 +58,22 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 		let connectionCount: number = 0;
 		const voiceClient = new VoiceClient(interaction.guild, channel);
 		voiceClient.on("connect", async (connectionID) => {
+			let hasError: boolean = false;
 			connectionCount++;
 			const a = (): boolean => connectionID === voiceClient.getConnectionID();
 
 			if (a()) {
-				await voiceClient.play(() => {
-					return fs.createReadStream(connectionCount === 1 ? voicePath1 : voicePath2);
-				});
+				try {
+					await voiceClient.play(() => {
+						return fs.createReadStream(connectionCount === 1 ? voicePath1 : voicePath2);
+					});
+				} catch (error) {
+					console.error(error);
+					hasError = true;
+				}
 			}
 
-			if (a()) {
+			if ((a()) && (!hasError)) {
 				await target.voice.disconnect(`${interaction.user.id} によって切断されました。`);
 
 				await interaction.editReply({
@@ -75,7 +81,17 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 				});
 			}
 
-			if (a()) voiceClient.destroy();
+			if (a()) {
+				try {
+					voiceClient.destroy();
+				} catch (error) {
+					console.error(error);
+				}
+			}
+
+			if (hasError) await interaction.editReply({
+				content: `${Discord.userMention(target.id)} は ${Discord.channelMention(channel.id)} で首を括れなかった。`
+			});
 		});
 		voiceClient.on("disconnect", async () => {
 			await voiceClient.connect();

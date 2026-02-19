@@ -58,16 +58,22 @@ export default class SlashCommandVoiceChannelDisband extends SlashCommand {
 		let connectionCount: number = 0;
 		const voiceClient = new VoiceClient(interaction.guild, channel);
 		voiceClient.on("connect", async (connectionID) => {
+			let hasError: boolean = false;
 			connectionCount++;
 			const a = (): boolean => connectionID === voiceClient.getConnectionID();
 
 			if (a()) {
-				await voiceClient.play(() => {
-					return fs.createReadStream(connectionCount === 1 ? voicePath1 : voicePath2);
-				});
+				try {
+					await voiceClient.play(() => {
+						return fs.createReadStream(connectionCount === 1 ? voicePath1 : voicePath2);
+					});
+				} catch (error) {
+					console.error(error);
+					hasError = true;
+				}
 			}
 
-			if (a()) {
+			if ((a()) && (!hasError)) {
 				const targetMembers = channel.members.filter(member => member.id !== interaction.client.user.id);
 				for (const member of targetMembers.values()) {
 					try {
@@ -83,7 +89,17 @@ export default class SlashCommandVoiceChannelDisband extends SlashCommand {
 				});
 			}
 
-			if (a()) voiceClient.destroy();
+			if (a()) {
+				try {
+					voiceClient.destroy();
+				} catch (error) {
+					console.error(error);
+				}
+			}
+
+			if (hasError) await interaction.editReply({
+				content: `${Discord.channelMention(channel.id)} は既にアッチ側に立っている。`
+			});
 		});
 		voiceClient.on("disconnect", async () => {
 			await voiceClient.connect();
