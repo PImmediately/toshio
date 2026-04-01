@@ -28,6 +28,9 @@ permission:
     user: '1346945401474908251'
 
 feature:
+  # Ping
+  vc-ping:
+    enabled: true
   # 罠チャンネル
   trap-channel:
     enabled: true

@@ -32,6 +32,9 @@ export interface Configuration {
 		};
 	};
 	feature: {
+		"vc-ping": {
+			enabled: boolean;
+		};
 		"trap-channel": {
 			enabled: boolean;
 			channel: string;
