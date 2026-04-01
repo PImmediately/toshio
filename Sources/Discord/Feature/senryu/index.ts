@@ -18,8 +18,19 @@ export default class FeatureSenryu extends Feature {
 		if (!message.inGuild()) return;
 		if (message.author.bot) return;
 
+		if (message.content === "詠め") {
+			await message.reply({
+				content: "詠みません"
+			});
+			return;
+		} else if (message.content === "詠むな") {
+			await message.reply({
+				content: "詠んですらいないが？"
+			});
+			return;
+		}
+
 		if (message.content.length < 5) return;
-		
 		const haikus = await Haiku.find(message.content, {
 			rule: [5, 7, 5],
 			kagome: {
