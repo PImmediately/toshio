@@ -26,6 +26,7 @@
 		"@snazzah/davey": "^0.1.9",
 		"discord.js": "^14.21.0",
 		"dotenv": "^17.2.0",
+		"ts-haiku": "^0.0.1",
 		"yaml": "^2.8.2"
 	}
 }

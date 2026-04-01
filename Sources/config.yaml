@@ -32,6 +32,9 @@ feature:
   trap-channel:
     enabled: true
     channel: '1473234130174083072'
+  # 川柳
+  senryu:
+    enabled: true
 
 # ログ
 log:

@@ -10,9 +10,11 @@ import type Feature from "./Feature/Feature";
 import FeatureManager from "./Feature/FeatureManager";
 
 import FeatureTrapChannel from "./Feature/trap-channel";
+import FeatureSenryu from "./Feature/senryu";
 
 const INSTALLED_FEATURES: (typeof Feature)[] = [
 	FeatureTrapChannel,
+	FeatureSenryu,
 ];
 
 export default class DiscordBOT {
