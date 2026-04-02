@@ -5,7 +5,14 @@ import type FeatureManager from "./../FeatureManager";
 
 import Discord from "discord.js";
 
+import type { RawSenryu } from "./../../../Database/DatabaseSenryu";
+
 const rule = [5, 7, 5];
+
+export interface CreatedSenryu {
+	content: string[];
+	senryus: RawSenryu[];
+}
 
 export default class FeatureSenryu extends Feature {
 
@@ -21,9 +28,7 @@ export default class FeatureSenryu extends Feature {
 		if (message.author.bot) return;
 
 		if (message.content === "詠め") {
-			await message.reply({
-				content: "詠みません"
-			});
+			await this.replySenryuWrite(message);
 			return;
 		} else if (message.content === "詠むな") {
 			await message.reply({
@@ -62,6 +67,54 @@ export default class FeatureSenryu extends Feature {
 			senryuOnDatabase.contentHash = contentHash;
 		});
 		databaseSenryu.write();
+	}
+
+	private async replySenryuWrite(message: Discord.Message): Promise<Discord.Message> {
+		const createdSenryu = this.createSenryuFromDatabase(rule);
+		if (!createdSenryu) {
+			return await message.reply({
+				content: "詠みません"
+			});
+		}
+
+		const authors = new Set<string>();
+		createdSenryu.senryus.forEach((senryu) => {
+			if (senryu.author) authors.add(senryu.author);
+		});
+
+		return await message.reply({
+			content: `ここで一句\n「${createdSenryu.content.join(" ")}」`,
+			embeds: [
+				new Discord.EmbedBuilder()
+					.setDescription(`詠み手：${authors.size > 0 ? [...authors].map((author) => Discord.userMention(author)).join(", ") : "不明"}`)
+			]
+		});
+	}
+
+	public createSenryuFromDatabase(rule: number[]): CreatedSenryu | undefined {
+		const databaseSenryu = this.featureManager.discordBot.app.databaseSenryu;
+		databaseSenryu.read();
+
+		const result: CreatedSenryu = {
+			content: [],
+			senryus: []
+		};
+
+		for (let i: number = 0; i < rule.length; i++) {
+			const length = rule[i]!;
+
+			const senryus = new Array<RawSenryu>();
+			for (const id in databaseSenryu.data) {
+				const senryu = databaseSenryu.data[id]!;
+				if (senryu.rule[i] === length) senryus.push(senryu);
+			}
+			if (senryus.length === 0) return undefined;
+
+			const senryu = senryus[Math.floor(Math.random() * senryus.length)]!;
+			result.content.push(senryu.content[i]!);
+			result.senryus.push(senryu);
+		}
+		return result;
 	}
 
 }
