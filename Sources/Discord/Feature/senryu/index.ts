@@ -31,9 +31,7 @@ export default class FeatureSenryu extends Feature {
 			await this.replySenryuWrite(message);
 			return;
 		} else if (message.content === "詠むな") {
-			await message.reply({
-				content: "詠んですらいないが？"
-			});
+			await this.replySenryuStopWriting(message);
 			return;
 		}
 
@@ -87,6 +85,30 @@ export default class FeatureSenryu extends Feature {
 			embeds: [
 				new Discord.EmbedBuilder()
 					.setDescription(`詠み手：${authors.size > 0 ? [...authors].map((author) => Discord.userMention(author)).join(", ") : "不明"}`)
+			]
+		});
+	}
+
+	private async replySenryuStopWriting(message: Discord.Message): Promise<Discord.Message> {
+		const databaseSenryu = this.featureManager.discordBot.app.databaseSenryu;
+		databaseSenryu.read();
+
+		const latestSenryu = Object.values(databaseSenryu.data).sort((a, b) => {
+			if (!a.createdAt) return 1;
+			if (!b.createdAt) return -1;
+			return b.createdAt - a.createdAt;
+		})[0];
+		if (!latestSenryu) {
+			return await message.reply({
+				content: "詠んですらいないが？"
+			});
+		}
+
+		return await message.reply({
+			content: `最後に詠まれたのは「${latestSenryu.content.join(" ")}」である。`,
+			embeds: [
+				new Discord.EmbedBuilder()
+					.setDescription(`詠み手：${latestSenryu.author ? Discord.userMention(latestSenryu.author) : "不明"}`)
 			]
 		});
 	}
