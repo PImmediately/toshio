@@ -1,10 +1,14 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 
+import DatabaseSenryu from "./Database/DatabaseSenryu";
+
 import DiscordBOT from "./Discord/DiscordBOT";
 import * as Config from "./Config";
 
 export default class Application {
+
+	public readonly databaseSenryu = new DatabaseSenryu();
 
 	public readonly discordBot = new DiscordBOT(this);
 

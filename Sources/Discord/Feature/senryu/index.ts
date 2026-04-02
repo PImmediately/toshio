@@ -5,6 +5,8 @@ import type FeatureManager from "./../FeatureManager";
 
 import Discord from "discord.js";
 
+const rule = [5, 7, 5];
+
 export default class FeatureSenryu extends Feature {
 
 	public constructor(featureManager: FeatureManager) {
@@ -31,18 +33,35 @@ export default class FeatureSenryu extends Feature {
 		}
 
 		if (message.content.length < 5) return;
-		const haikus = await Haiku.find(message.content, {
-			rule: [5, 7, 5],
+		const senryus = await Haiku.find(message.content, {
+			rule,
 			kagome: {
 				sysdict: "uni"
 			}
 		});
-		if (haikus.length === 0) return;
+		if (senryus.length === 0) return;
 
-		const haiku = haikus[0]!;
 		await message.reply({
-			content: `無料の川柳を検知：\n「${haiku}」`
+			content: `無料の川柳を検知：\n${senryus.map((senryu) => `「${senryu}」`).join("\n")}`
 		});
+
+		const databaseSenryu = this.featureManager.discordBot.app.databaseSenryu;
+		senryus.forEach((senryu) => {
+			const content = senryu.split(" ");
+			const contentHash = databaseSenryu.getContentHash(content);
+
+			const existingSenryu = Object.values(databaseSenryu.data).find((s) => s.contentHash === contentHash);
+			if (existingSenryu) return;
+
+			const senryuOnDatabase = databaseSenryu.create();
+			senryuOnDatabase.createdAt = message.createdAt.getTime();
+			senryuOnDatabase.message = message.id;
+			senryuOnDatabase.author = message.author.id;
+			senryuOnDatabase.rule = rule;
+			senryuOnDatabase.content = content;
+			senryuOnDatabase.contentHash = contentHash;
+		});
+		databaseSenryu.write();
 	}
 
 }
