@@ -17,8 +17,11 @@ const textEncoder = new TextEncoder();
 
 export default class DatabaseSenryu extends Database<Record<string, RawSenryu>> {
 
+	public static readonly RULE = [5, 7, 5];
+
 	public constructor() {
 		super("senryu.json", {});
+		this.clean();
 	}
 
 	public find(id: Discord.Snowflake): RawSenryu | undefined {
@@ -49,8 +52,24 @@ export default class DatabaseSenryu extends Database<Record<string, RawSenryu>> 
 		this.write();
 	}
 
+	public clean(): void {
+		for (const id in this.data) {
+			const senryu = this.data[id]!;
+			if (DatabaseSenryu.isSenryuValid(senryu.content)) continue;
+			this.delete(id);
+		}
+	}
+
 	public getContentHash(content: string[]): string {
 		return base64.fromByteArray(textEncoder.encode(content.join(" ")));
+	}
+
+	public static isSenryuValid(content: string[]): boolean {
+		if (content.length !== DatabaseSenryu.RULE.length) return false;
+		for (const part of content) {
+			if (/[0-9]+/.test(part)) return false;
+		}
+		return true;
 	}
 
 }

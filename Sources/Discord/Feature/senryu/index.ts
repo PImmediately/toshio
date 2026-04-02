@@ -5,9 +5,7 @@ import type FeatureManager from "./../FeatureManager";
 
 import Discord from "discord.js";
 
-import type { RawSenryu } from "./../../../Database/DatabaseSenryu";
-
-const rule = [5, 7, 5];
+import DatabaseSenryu, { type RawSenryu } from "./../../../Database/DatabaseSenryu";
 
 export interface CreatedSenryu {
 	content: string[];
@@ -36,22 +34,24 @@ export default class FeatureSenryu extends Feature {
 		}
 
 		if (message.content.length < 5) return;
-		const senryus = await Haiku.find(message.content, {
-			rule,
+
+		const senryus = (await Haiku.find(message.content, {
+			rule: DatabaseSenryu.RULE,
 			kagome: {
 				sysdict: "uni"
 			}
-		});
+		}))
+			.map((raw) => raw.split(" "))
+			.filter((content) => DatabaseSenryu.isSenryuValid(content));
 		if (senryus.length === 0) return;
 
 		await message.reply({
-			content: `無料の川柳を検知：\n${senryus.map((senryu) => `「${senryu}」`).join("\n")}`
+			content: `無料の川柳を検知：\n${senryus.map((senryu) => `「${senryu.join(" ")}」`).join("\n")}`
 		});
 
 		const databaseSenryu = this.featureManager.discordBot.app.databaseSenryu;
 		senryus.forEach((senryu) => {
-			const content = senryu.split(" ");
-			const contentHash = databaseSenryu.getContentHash(content);
+			const contentHash = databaseSenryu.getContentHash(senryu);
 
 			const existingSenryu = Object.values(databaseSenryu.data).find((s) => s.contentHash === contentHash);
 			if (existingSenryu) return;
@@ -60,15 +60,15 @@ export default class FeatureSenryu extends Feature {
 			senryuOnDatabase.createdAt = message.createdAt.getTime();
 			senryuOnDatabase.message = message.id;
 			senryuOnDatabase.author = message.author.id;
-			senryuOnDatabase.rule = rule;
-			senryuOnDatabase.content = content;
+			senryuOnDatabase.rule = DatabaseSenryu.RULE;
+			senryuOnDatabase.content = senryu;
 			senryuOnDatabase.contentHash = contentHash;
 		});
 		databaseSenryu.write();
 	}
 
 	private async replySenryuWrite(message: Discord.Message): Promise<Discord.Message> {
-		const createdSenryu = this.createSenryuFromDatabase(rule);
+		const createdSenryu = this.createSenryuFromDatabase(DatabaseSenryu.RULE);
 		if (!createdSenryu) {
 			return await message.reply({
 				content: "詠みません"
