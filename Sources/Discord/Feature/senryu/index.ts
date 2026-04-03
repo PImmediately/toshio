@@ -31,40 +31,9 @@ export default class FeatureSenryu extends Feature {
 		} else if (message.content === "詠むな") {
 			await this.replySenryuStopWriting(message);
 			return;
+		} else {
+			await this.checkSenryu(message);
 		}
-
-		if (message.content.length < 5) return;
-
-		const senryus = Haiku.find(message.content, {
-			rule: DatabaseSenryu.RULE,
-			kagome: {
-				sysdict: "uni"
-			}
-		})
-			.map((raw) => raw.split(" "))
-			.filter((content) => DatabaseSenryu.isSenryuValid(content));
-		if (senryus.length === 0) return;
-
-		await message.reply({
-			content: `無料の川柳を検知：\n${senryus.map((senryu) => `「${senryu.join(" ")}」`).join("\n")}`
-		});
-
-		const databaseSenryu = this.featureManager.discordBot.app.databaseSenryu;
-		senryus.forEach((senryu) => {
-			const contentHash = databaseSenryu.getContentHash(senryu);
-
-			const existingSenryu = Object.values(databaseSenryu.data).find((s) => s.contentHash === contentHash);
-			if (existingSenryu) return;
-
-			const senryuOnDatabase = databaseSenryu.create();
-			senryuOnDatabase.createdAt = message.createdAt.getTime();
-			senryuOnDatabase.message = message.id;
-			senryuOnDatabase.author = message.author.id;
-			senryuOnDatabase.rule = DatabaseSenryu.RULE;
-			senryuOnDatabase.content = senryu;
-			senryuOnDatabase.contentHash = contentHash;
-		});
-		databaseSenryu.write();
 	}
 
 	private async replySenryuWrite(message: Discord.Message): Promise<Discord.Message> {
@@ -111,6 +80,48 @@ export default class FeatureSenryu extends Feature {
 					.setDescription(`詠み手：${latestSenryu.author ? Discord.userMention(latestSenryu.author) : "不明"}`)
 			]
 		});
+	}
+
+	private async checkSenryu(message: Discord.Message): Promise<void> {
+		let content: string = message.content;
+		if (message.messageSnapshots.size > 0) {
+			content += "\n";
+			message.messageSnapshots.forEach((snapshot) => {
+				if (snapshot.content) content += `${snapshot.content}\n`;
+			});
+		}
+		if (content.length < 5) return;
+
+		const senryus = Haiku.find(content, {
+			rule: DatabaseSenryu.RULE,
+			kagome: {
+				sysdict: "uni"
+			}
+		})
+			.map((raw) => raw.split(" "))
+			.filter((content) => DatabaseSenryu.isSenryuValid(content));
+		if (senryus.length === 0) return;
+
+		await message.reply({
+			content: `無料の川柳を検知：\n${senryus.map((senryu) => `「${senryu.join(" ")}」`).join("\n")}`
+		});
+
+		const databaseSenryu = this.featureManager.discordBot.app.databaseSenryu;
+		senryus.forEach((senryu) => {
+			const contentHash = databaseSenryu.getContentHash(senryu);
+
+			const existingSenryu = Object.values(databaseSenryu.data).find((s) => s.contentHash === contentHash);
+			if (existingSenryu) return;
+
+			const senryuOnDatabase = databaseSenryu.create();
+			senryuOnDatabase.createdAt = message.createdAt.getTime();
+			senryuOnDatabase.message = message.id;
+			senryuOnDatabase.author = message.author.id;
+			senryuOnDatabase.rule = DatabaseSenryu.RULE;
+			senryuOnDatabase.content = senryu;
+			senryuOnDatabase.contentHash = contentHash;
+		});
+		databaseSenryu.write();
 	}
 
 	public createSenryuFromDatabase(rule: number[]): CreatedSenryu | undefined {
