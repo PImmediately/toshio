@@ -35,12 +35,12 @@ export default class FeatureSenryu extends Feature {
 
 		if (message.content.length < 5) return;
 
-		const senryus = (await Haiku.find(message.content, {
+		const senryus = Haiku.find(message.content, {
 			rule: DatabaseSenryu.RULE,
 			kagome: {
 				sysdict: "uni"
 			}
-		}))
+		})
 			.map((raw) => raw.split(" "))
 			.filter((content) => DatabaseSenryu.isSenryuValid(content));
 		if (senryus.length === 0) return;
