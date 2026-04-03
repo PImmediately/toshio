@@ -67,7 +67,7 @@ export default class DatabaseSenryu extends Database<Record<string, RawSenryu>> 
 	public static isSenryuValid(content: string[]): boolean {
 		if (content.length !== DatabaseSenryu.RULE.length) return false;
 		for (const part of content) {
-			if (/[0-9]+/.test(part)) return false;
+			if (/[0-9０-９\u2160-\u2188]+/.test(part)) return false;
 		}
 		return true;
 	}
