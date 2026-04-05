@@ -136,15 +136,24 @@ export default class FeatureSenryu extends Feature {
 		for (let i: number = 0; i < rule.length; i++) {
 			const length = rule[i]!;
 
-			const senryus = new Array<RawSenryu>();
+			const senryusEachContent = new Map<string, RawSenryu[]>();
 			for (const id in databaseSenryu.data) {
 				const senryu = databaseSenryu.data[id]!;
-				if (senryu.rule[i] === length) senryus.push(senryu);
-			}
-			if (senryus.length === 0) return undefined;
+				if (senryu.rule[i] !== length) continue;
 
+				const content = senryu.content[i]!;
+				if (!senryusEachContent.has(content)) senryusEachContent.set(content, []);
+				senryusEachContent.get(content)!.push(senryu);
+			}
+			if (senryusEachContent.size === 0) return undefined;
+
+			const contents = [...senryusEachContent.keys()];
+			const content = contents[Math.floor(Math.random() * contents.length)]!;
+
+			const senryus = senryusEachContent.get(content)!;
 			const senryu = senryus[Math.floor(Math.random() * senryus.length)]!;
-			result.content.push(senryu.content[i]!);
+
+			result.content.push(content);
 			result.senryus.push(senryu);
 		}
 		return result;
