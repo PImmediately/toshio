@@ -10,6 +10,8 @@ export default class FeatureTrapChannel extends Feature {
 	}
 
 	override async onMessageCreate(message: Discord.Message): Promise<void> {
+		if (process.env.NODE_ENV === "development") return;
+
 		const config = this.featureManager.discordBot.app.readConfig();
 		if (!config.feature["trap-channel"].enabled) return;
 		if (!config.feature["trap-channel"].channel) return;

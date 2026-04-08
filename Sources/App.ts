@@ -19,10 +19,12 @@ export default class Application {
 }
 
 (async () => {
-	console.log("Initializing...");
-	await Haiku.init();
-	console.log("Initialized.");
-	
+	if (process.env.NODE_ENV === "production") {
+		console.log("Initializing...");
+		await Haiku.init();
+		console.log("Initialized.");
+	}
+
 	process.on("unhandledRejection", (reason, promise) => {
 		console.error("Unhandled Rejection:", reason);
 	});

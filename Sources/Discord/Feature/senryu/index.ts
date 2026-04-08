@@ -19,6 +19,8 @@ export default class FeatureSenryu extends Feature {
 	}
 
 	override async onMessageCreate(message: Discord.Message): Promise<void> {
+		if (process.env.NODE_ENV === "development") return;
+
 		const config = this.featureManager.discordBot.app.readConfig();
 		if (!config.feature["senryu"].enabled) return;
 
