@@ -99,7 +99,7 @@ export default class SlashCommandVoiceChannelKick extends SlashCommand {
 			if ((a()) && (!hasError) && (target)) {
 				await target.voice.disconnect(`${interaction.user.id} によって切断されました。`);
 				await interaction.editReply({
-					content: `最後に喋った ${Discord.userMention(interaction.member.id)} は ${Discord.channelMention(channel.id)} で首を括った。`
+					content: `最後に喋った ${Discord.userMention(target.id)} は ${Discord.channelMention(channel.id)} で首を括った。`
 				});
 			}
 
@@ -113,7 +113,7 @@ export default class SlashCommandVoiceChannelKick extends SlashCommand {
 
 			if (hasError) {
 				await interaction.editReply({
-					content: `最後に喋った ${Discord.userMention(interaction.member.id)} は ${Discord.channelMention(channel.id)} で首を括れなかった。`
+					content: target ? `最後に喋った ${Discord.userMention(target.id)} は ${Discord.channelMention(channel.id)} で首を括れなかった。` : "誰も首を括れなかった。"
 				});
 			}
 		});
