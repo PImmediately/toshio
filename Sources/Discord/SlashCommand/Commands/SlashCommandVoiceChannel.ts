@@ -1,9 +1,55 @@
 import Discord from "discord.js";
+import VoiceClient from "./../../VoiceClient";
 import SlashCommand from "./SlashCommand";
+
+import fs from "node:fs";
+import getNativePath from "./../../../TypeScript/Path";
+import path from "node:path";
 
 import SlashCommandVoiceChannelDisconnect from "./SlashCommandVoiceChannelDisconnect";
 import SlashCommandVoiceChannelDisband from "./SlashCommandVoiceChannelDisband";
 import SlashCommandVoiceChannelMoveAll from "./SlashCommandVoiceChannelMoveAll";
+
+const voicePathKick1 = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_shindaraeenen.wav"));
+const voicePathKick2 = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_hitonokokoro.wav"));
+
+const voicePathKickAll1 = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_attigawa.wav"));
+const voicePathKickAll2 = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_hitonokokoro.wav"));
+
+const voicePathMoveAll1 = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_saikousokudo.wav"));
+const voicePathMoveAll2 = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_hitonokokoro.wav"));
+
+export interface KickOptions {
+	guild: Discord.Guild;
+	channel: Discord.VoiceBasedChannel;
+	member: Discord.GuildMember;
+	reason?: string;
+	onKick?: () => void;
+	onError?: () => void;
+}
+
+export interface KickAllOptions {
+	guild: Discord.Guild;
+	channel: Discord.VoiceBasedChannel;
+	reason?: string;
+	onKickAll?: (members: Discord.Collection<string, Discord.GuildMember>) => void;
+	onError?: () => void;
+}
+
+export interface MoveAllOptions {
+	guild: Discord.Guild;
+	fromChannel: Discord.VoiceBasedChannel;
+	toChannel: Discord.VoiceBasedChannel;
+	condition?: MoveAllOptionsCondition;
+	reason?: string;
+	onMoveAll?: (members: Discord.Collection<string, Discord.GuildMember>) => void;
+	onError?: () => void;
+}
+
+export interface MoveAllOptionsCondition {
+	not?: boolean;
+	minPermissionLevel?: number;
+}
 
 export default class SlashCommandVoiceChannel extends SlashCommand {
 
@@ -64,6 +110,9 @@ export default class SlashCommandVoiceChannel extends SlashCommand {
 				});
 		});
 
+	private static readonly MOVE_ALL_SET_CHANNEL_COOLDOWN = 200;
+	private static readonly KICK_ALL_DISCONNECT_COOLDOWN = 200;
+
 	override onExecute(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>): void {
 		switch (interaction.options.getSubcommand()) {
 			case "disconnect": {
@@ -79,6 +128,152 @@ export default class SlashCommandVoiceChannel extends SlashCommand {
 				return;
 			}
 		}
+	}
+
+	public static async kick(options: KickOptions): Promise<void> {
+		let connectionCount: number = 0;
+		const voiceClient = new VoiceClient(options.guild, options.channel);
+		voiceClient.on("connect", async (connectionID) => {
+			let hasError: boolean = false;
+			connectionCount++;
+			const a = (): boolean => connectionID === voiceClient.getConnectionID();
+
+			if (a()) {
+				try {
+					await voiceClient.play(() => {
+						return fs.createReadStream(connectionCount === 1 ? voicePathKick1 : voicePathKick2);
+					});
+				} catch (error) {
+					console.error(error);
+					hasError = true;
+				}
+			}
+
+			if ((a()) && (!hasError)) {
+				await options.member.voice.disconnect(`${options.reason}`);
+				options.onKick?.();
+			}
+
+			if (a()) {
+				try {
+					voiceClient.destroy();
+				} catch (error) {
+					console.error(error);
+				}
+			}
+
+			if (hasError) options.onError?.();
+		});
+		voiceClient.on("disconnect", async () => {
+			await voiceClient.connect();
+		});
+		await voiceClient.connect();
+	}
+
+	public static async kickAll(options: KickAllOptions): Promise<void> {
+		let connectionCount: number = 0;
+		const voiceClient = new VoiceClient(options.guild, options.channel);
+		voiceClient.on("connect", async (connectionID) => {
+			let hasError: boolean = false;
+			connectionCount++;
+			const a = (): boolean => connectionID === voiceClient.getConnectionID();
+
+			if (a()) {
+				try {
+					await voiceClient.play(() => {
+						return fs.createReadStream(connectionCount === 1 ? voicePathKickAll1 : voicePathKickAll2);
+					});
+				} catch (error) {
+					console.error(error);
+					hasError = true;
+				}
+			}
+
+			if ((a()) && (!hasError)) {
+				const targetMembers = options.channel.members.filter(member => member.id !== options.guild.client.user.id);
+				for (const member of targetMembers.values()) {
+					try {
+						member.voice.disconnect(options.reason);
+					} catch (error) {
+						console.error(error);
+					}
+					await new Promise((resolve) => setTimeout(resolve, SlashCommandVoiceChannel.KICK_ALL_DISCONNECT_COOLDOWN));
+				}
+
+				options.onKickAll?.(targetMembers);
+			}
+
+			if (a()) {
+				try {
+					voiceClient.destroy();
+				} catch (error) {
+					console.error(error);
+				}
+			}
+
+			if (hasError) options.onError?.();
+		});
+		voiceClient.on("disconnect", async () => {
+			await voiceClient.connect();
+		});
+		await voiceClient.connect();
+	}
+
+	public static async moveAll(options: MoveAllOptions): Promise<void> {
+		let connectionCount: number = 0;
+		const voiceClient = new VoiceClient(options.guild, options.fromChannel);
+		voiceClient.on("connect", async (connectionID) => {
+			let hasError: boolean = false;
+			connectionCount++;
+			const a = (): boolean => connectionID === voiceClient.getConnectionID();
+
+			if (a()) {
+				try {
+					await voiceClient.play(() => {
+						return fs.createReadStream(connectionCount === 1 ? voicePathMoveAll1 : voicePathMoveAll2);
+					});
+				} catch (error) {
+					console.error(error);
+					hasError = true;
+				}
+			}
+
+			const targetMembers = options.fromChannel.members.filter(((member) => {
+				if (member.id === options.guild.client.user.id) return false;
+				if (options.condition?.minPermissionLevel) {
+					const permissionLevel = options.guild.client.discordBOT.getMemberPermissionLevel(member);
+					return options.condition.not ? permissionLevel < options.condition.minPermissionLevel : permissionLevel >= options.condition.minPermissionLevel;
+				}
+				return true;
+			}));
+
+			if ((a()) && (!hasError)) {
+				for (const member of targetMembers.values()) {
+					try {
+						await member.voice.setChannel(options.toChannel, options.reason);
+					} catch (error) {
+						console.error(error);
+					}
+					await new Promise((resolve) => setTimeout(resolve, SlashCommandVoiceChannel.MOVE_ALL_SET_CHANNEL_COOLDOWN));
+				}
+
+				options.onMoveAll?.(targetMembers);
+			}
+
+			if (a()) {
+				try {
+					voiceClient.destroy();
+				} catch (error) {
+					console.error(error);
+				}
+			}
+
+			if (hasError) options.onError?.();
+		});
+		voiceClient.on("disconnect", async () => {
+			await voiceClient.connect();
+		});
+		await voiceClient.connect();
 	}
 
 }

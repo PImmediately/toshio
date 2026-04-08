@@ -1,19 +1,11 @@
 import Discord from "discord.js";
-import VoiceClient from "./../../VoiceClient";
+
 import SlashCommand from "./SlashCommand";
-
-import fs from "node:fs";
-import getNativePath from "./../../../TypeScript/Path";
-import path from "node:path";
-
-const voicePath1 = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_saikousokudo.wav"));
-const voicePath2 = getNativePath(path.join(__dirname, "..", "..", "..", "Resources", "dobukasu_hitonokokoro.wav"));
+import SlashCommandVoiceChannel from "./SlashCommandVoiceChannel";
 
 export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 
 	override readonly command = undefined;
-
-	private static readonly SET_CHANNEL_COOLDOWN = 200;
 
 	override async onExecute(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>): Promise<void> {
 		if (!interaction.inCachedGuild()) return;
@@ -75,67 +67,29 @@ export default class SlashCommandVoiceChannelMoveAll extends SlashCommand {
 
 		await interaction.deferReply();
 
-		const conditionMinPermissionLevel = interaction.options.getInteger("condition_min_permission_level", false);
+		const conditionMinPermissionLevel = interaction.options.getInteger("condition_min_permission_level", false) ?? undefined;
 		const conditionNot = interaction.options.getBoolean("condition_not") ?? false;
 
-		let connectionCount: number = 0;
-		const voiceClient = new VoiceClient(interaction.guild, from);
-		voiceClient.on("connect", async (connectionID) => {
-			let hasError: boolean = false;
-			connectionCount++;
-			const a = (): boolean => connectionID === voiceClient.getConnectionID();
-
-			if (a()) {
-				try {
-					await voiceClient.play(() => {
-						return fs.createReadStream(connectionCount === 1 ? voicePath1 : voicePath2);
-					});
-				} catch (error) {
-					console.error(error);
-					hasError = true;
-				}
-			}
-
-			const targetMembers = from.members.filter((member => {
-				if (member.id === interaction.client.user.id) return false;
-				if (conditionMinPermissionLevel !== null) {
-					const permissionLevel = interaction.client.discordBOT.getMemberPermissionLevel(member);
-					return conditionNot ? permissionLevel < conditionMinPermissionLevel : permissionLevel >= conditionMinPermissionLevel;
-				}
-				return true;
-			}));
-
-			if ((a()) && (!hasError)) {
-				for (const member of targetMembers.values()) {
-					try {
-						member.voice.setChannel(to, `${interaction.user.id} によって移動されました。`);
-					} catch (error) {
-						console.error(error);
-					}
-					await new Promise((resolve) => setTimeout(resolve, SlashCommandVoiceChannelMoveAll.SET_CHANNEL_COOLDOWN));
-				}
-
+		await SlashCommandVoiceChannel.moveAll({
+			guild: interaction.guild,
+			fromChannel: from,
+			toChannel: to,
+			condition: {
+				not: conditionNot,
+				minPermissionLevel: conditionMinPermissionLevel,
+			},
+			reason: `${interaction.guild.client.user.id} によって移動されました。`,
+			onMoveAll: async (members) => {
 				await interaction.editReply({
-					content: `${Discord.channelMention(from.id)} にいた${targetMembers.size}人は最高速度で ${Discord.channelMention(to.id)} までブチ抜かれた。`
+					content: `${Discord.channelMention(from.id)} にいた${members.size}人は最高速度で ${Discord.channelMention(to.id)} までブチ抜かれた。`
+				});
+			},
+			onError: async () => {
+				await interaction.editReply({
+					content: `最高速度で ${Discord.channelMention(from.id)} を通過した。`
 				});
 			}
-
-			if (a()) {
-				try {
-					voiceClient.destroy();
-				} catch (error) {
-					console.error(error);
-				}
-			}
-
-			if (hasError) await interaction.editReply({
-				content: `最高速度で ${Discord.channelMention(from.id)} を通過した。`
-			});
 		});
-		voiceClient.on("disconnect", async () => {
-			await voiceClient.connect();
-		});
-		await voiceClient.connect();
 	}
 
 }
