@@ -8,6 +8,8 @@ import type fs from "node:fs";
 export interface VoiceClientEvents {
 	connect: (connectionID: number) => void;
 	disconnect: (connectionID: number) => void;
+	memberSpeakingStart: (member: Discord.GuildMember) => void;
+	memberSpeakingEnd: (member: Discord.GuildMember) => void;
 	error: (error: Error) => void;
 }
 
@@ -49,6 +51,15 @@ export default class VoiceClient extends EventEmitter<VoiceClientEvents> {
 		});
 
 		await DiscordVoice.entersState(this.connection, DiscordVoice.VoiceConnectionStatus.Ready, timeout);
+
+		const receiver = this.connection.receiver;
+		receiver.speaking.on("start", (userID) => {
+			super.emit("memberSpeakingStart", this.guild.members.cache.get(userID)!);
+		});
+		receiver.speaking.on("end", (userID) => {
+			super.emit("memberSpeakingEnd", this.guild.members.cache.get(userID)!);
+		});
+
 		if (connectionID === this.getConnectionID()) this.emit("connect", connectionID);
 	}
 

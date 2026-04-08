@@ -6,6 +6,7 @@ import fs from "node:fs";
 import getNativePath from "./../../../TypeScript/Path";
 import path from "node:path";
 
+import SlashCommandVoiceChannelKick from "./SlashCommandVoiceChannelKick";
 import SlashCommandVoiceChannelDisconnect from "./SlashCommandVoiceChannelDisconnect";
 import SlashCommandVoiceChannelDisband from "./SlashCommandVoiceChannelDisband";
 import SlashCommandVoiceChannelMoveAll from "./SlashCommandVoiceChannelMoveAll";
@@ -53,6 +54,7 @@ export interface MoveAllOptionsCondition {
 
 export default class SlashCommandVoiceChannel extends SlashCommand {
 
+	private readonly voiceChannelKick = new SlashCommandVoiceChannelKick();
 	private readonly voiceChannelDisconnect = new SlashCommandVoiceChannelDisconnect();
 	private readonly voiceChannelDisband = new SlashCommandVoiceChannelDisband();
 	private readonly voiceChannelMoveAll = new SlashCommandVoiceChannelMoveAll();
@@ -60,6 +62,39 @@ export default class SlashCommandVoiceChannel extends SlashCommand {
 	override readonly command = new Discord.SlashCommandBuilder()
 		.setName("vc")
 		.setDescription("ボイスチャンネルに関するコマンド")
+		.addSubcommand((group) => {
+			return group
+				.setName("kick")
+				.setDescription("ボイスチャンネルにいるメンバーを切断します。")
+				.addStringOption((option) => {
+					return option
+						.setName("selector")
+						.setDescription("セレクター")
+						.setRequired(true)
+						.setChoices([
+							{
+								name: "@p（実行者がいるボイスチャンネルにおいて、最後に喋った人）",
+								value: "@p"
+							},
+							{
+								name: "@r（実行者がいるボイスチャンネルにおいて、無作為に一人のメンバー）",
+								value: "@r"
+							},
+							{
+								name: "@a（実行者がいるボイスチャンネルにおいて、すべてのメンバー）",
+								value: "@a"
+							},
+							{
+								name: "@e（サーバー内の全ボイスチャンネルにおいて、すべてのメンバー）",
+								value: "@e"
+							},
+							{
+								name: "@s（実行者）",
+								value: "@s"
+							}
+						]);
+				});
+		})
 		.addSubcommand((group) => {
 			return group
 				.setName("disconnect")
@@ -115,6 +150,10 @@ export default class SlashCommandVoiceChannel extends SlashCommand {
 
 	override onExecute(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>): void {
 		switch (interaction.options.getSubcommand()) {
+			case "kick": {
+				this.voiceChannelKick.onExecute(interaction);
+				return;
+			}
 			case "disconnect": {
 				this.voiceChannelDisconnect.onExecute(interaction);
 				return;
