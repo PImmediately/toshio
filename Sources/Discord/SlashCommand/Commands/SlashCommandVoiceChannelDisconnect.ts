@@ -18,7 +18,10 @@ export default class SlashCommandVoiceChannelDisconnect extends SlashCommand {
 
 		let target = interaction.options.getMember("target");
 		if (target) {
-			if (!(await SlashCommand.checkPermission(interaction, interaction.client.discordBOT.app.readConfig().permission.baka.level))) return;
+			if (
+				(target !== interaction.member) &&
+				(!(await SlashCommand.checkPermission(interaction, interaction.client.discordBOT.app.readConfig().permission.baka.level)))
+			) return;
 		} else {
 			target = interaction.member;
 		}
