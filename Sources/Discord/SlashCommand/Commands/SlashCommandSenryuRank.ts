@@ -27,13 +27,24 @@ export default class SlashCommandSenryuRank extends SlashCommand {
 			return;
 		}
 
+		let prevCount: number | null = null;
+		let rank: number = 0;
+
 		await interaction.reply({
 			embeds: [
 				new Discord.EmbedBuilder()
 					.setTitle("川柳ランキング")
-					.setDescription(entries.map(([author, senryus], index) => {
-						return `**${index + 1}位** ${Discord.userMention(author)}：${senryus.length}句`;
-					}).join("\n"))
+					.setDescription(
+						entries.map(([author, senryus], index) => {
+							const count = senryus.length;
+							if (count !== prevCount) {
+								rank = index + 1;
+								prevCount = count;
+							}
+
+							return `**${rank}位** ${Discord.userMention(author)}：${count}句`;
+						}).join("\n")
+					)
 			]
 		});
 	}
