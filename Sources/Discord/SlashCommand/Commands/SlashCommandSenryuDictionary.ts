@@ -10,6 +10,7 @@ export default class SlashCommandSenryuDictionary extends SlashCommand {
 
 		const databaseSenryu = interaction.client.discordBOT.app.databaseSenryu;
 
+		let total: number = 0;
 		const contentsEachRule: Record<string, string[]> = {};
 		databaseSenryu.forEachSenryu(interaction.guildId, (senryu) => {
 			if (!senryu.author) return;
@@ -19,6 +20,7 @@ export default class SlashCommandSenryuDictionary extends SlashCommand {
 				if (!contentsEachRule[rule]) contentsEachRule[rule] = new Array<string>();
 				contentsEachRule[rule].push(content);
 			}
+			total++;
 		});
 		if (Object.keys(contentsEachRule).length === 0) {
 			await interaction.reply("無の川柳を観測");
@@ -30,11 +32,17 @@ export default class SlashCommandSenryuDictionary extends SlashCommand {
 				new Discord.EmbedBuilder()
 					.setTitle("句の出現回数")
 					.setDescription(
+						`作品数：${total}` + "\n" +
 						Object.entries(contentsEachRule).map(([rule, contents]) => {
 							const countEachContent: Record<string, number> = {};
 							contents.forEach((content) => {
 								countEachContent[content] = (countEachContent[content] ?? 0) + 1;
 							});
+
+							let total: number = 0;
+							for (const content in countEachContent) {
+								total += countEachContent[content]!;
+							}
 
 							const ranking = Object.entries(countEachContent)
 								.sort((a, b) => b[1] - a[1])
@@ -44,7 +52,7 @@ export default class SlashCommandSenryuDictionary extends SlashCommand {
 								})
 								.join("\n");
 
-							return `### ${rule}音\n${ranking}`;
+							return `### ${rule}音（${total}句）\n${ranking}`;
 						}).join("\n")
 					)
 			]
