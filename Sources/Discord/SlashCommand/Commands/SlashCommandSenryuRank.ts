@@ -1,7 +1,7 @@
 import Discord from "discord.js";
 import SlashCommand from "./SlashCommand";
 
-import type { RawSenryu } from "./../../../Database/DatabaseSenryu";
+import type { RawSenryuGuildSenryu } from "./../../../Database/DatabaseSenryu";
 
 export default class SlashCommandSenryuRank extends SlashCommand {
 
@@ -12,10 +12,10 @@ export default class SlashCommandSenryuRank extends SlashCommand {
 
 		const databaseSenryu = interaction.client.discordBOT.app.databaseSenryu;
 
-		const senryusEachUser: Record<string, RawSenryu[]> = {};
-		Object.values(databaseSenryu.data).forEach((senryu) => {
+		const senryusEachUser: Record<string, RawSenryuGuildSenryu[]> = {};
+		databaseSenryu.forEachSenryu(interaction.guildId, (senryu) => {
 			if (!senryu.author) return;
-			if (!senryusEachUser[senryu.author]) senryusEachUser[senryu.author] = new Array<RawSenryu>();
+			if (!senryusEachUser[senryu.author]) senryusEachUser[senryu.author] = new Array<RawSenryuGuildSenryu>();
 			senryusEachUser[senryu.author]!.push(senryu);
 		});
 

@@ -5,11 +5,11 @@ import type FeatureManager from "./../FeatureManager";
 
 import Discord from "discord.js";
 
-import DatabaseSenryu, { type RawSenryu } from "./../../../Database/DatabaseSenryu";
+import DatabaseSenryu, { type RawSenryuGuildSenryu } from "./../../../Database/DatabaseSenryu";
 
 export interface CreatedSenryu {
 	content: string[];
-	senryus: RawSenryu[];
+	senryus: RawSenryuGuildSenryu[];
 }
 
 export default class FeatureSenryu extends Feature {
@@ -38,8 +38,8 @@ export default class FeatureSenryu extends Feature {
 		}
 	}
 
-	private async replySenryuWrite(message: Discord.Message): Promise<Discord.Message> {
-		const createdSenryu = this.createSenryuFromDatabase(DatabaseSenryu.RULE);
+	private async replySenryuWrite(message: Discord.Message<true>): Promise<Discord.Message> {
+		const createdSenryu = this.createSenryuFromDatabase(message.guildId, DatabaseSenryu.RULE);
 		if (!createdSenryu) {
 			return await message.reply({
 				content: "詠みません"
@@ -60,11 +60,10 @@ export default class FeatureSenryu extends Feature {
 		});
 	}
 
-	private async replySenryuStopWriting(message: Discord.Message): Promise<Discord.Message> {
+	private async replySenryuStopWriting(message: Discord.Message<true>): Promise<Discord.Message<true>> {
 		const databaseSenryu = this.featureManager.discordBot.app.databaseSenryu;
-		databaseSenryu.read();
 
-		const latestSenryu = Object.values(databaseSenryu.data).sort((a, b) => {
+		const latestSenryu = databaseSenryu.sortSenryu(message.guildId, (a, b) => {
 			if (!a.createdAt) return 1;
 			if (!b.createdAt) return -1;
 			return b.createdAt - a.createdAt;
@@ -84,7 +83,7 @@ export default class FeatureSenryu extends Feature {
 		});
 	}
 
-	private async checkSenryu(message: Discord.Message): Promise<void> {
+	private async checkSenryu(message: Discord.Message<true>): Promise<void> {
 		let content: string = message.content;
 		if (message.messageSnapshots.size > 0) {
 			content += "\n";
@@ -110,12 +109,12 @@ export default class FeatureSenryu extends Feature {
 
 		const databaseSenryu = this.featureManager.discordBot.app.databaseSenryu;
 		senryus.forEach((senryu) => {
-			const contentHash = databaseSenryu.getContentHash(senryu);
+			const contentHash = databaseSenryu.getSenryuContentHash(senryu);
 
-			const existingSenryu = Object.values(databaseSenryu.data).find((s) => s.contentHash === contentHash);
+			const existingSenryu = databaseSenryu.findSenryu(message.guildId, (senryu) => senryu.contentHash === contentHash);
 			if (existingSenryu) return;
 
-			const senryuOnDatabase = databaseSenryu.create();
+			const senryuOnDatabase = databaseSenryu.createSenryu(message.guildId);
 			senryuOnDatabase.createdAt = message.createdAt.getTime();
 			senryuOnDatabase.message = message.id;
 			senryuOnDatabase.author = message.author.id;
@@ -126,9 +125,8 @@ export default class FeatureSenryu extends Feature {
 		databaseSenryu.write();
 	}
 
-	public createSenryuFromDatabase(rule: number[]): CreatedSenryu | undefined {
+	public createSenryuFromDatabase(guild: Discord.Snowflake, rule: number[]): CreatedSenryu | undefined {
 		const databaseSenryu = this.featureManager.discordBot.app.databaseSenryu;
-		databaseSenryu.read();
 
 		const result: CreatedSenryu = {
 			content: [],
@@ -138,11 +136,10 @@ export default class FeatureSenryu extends Feature {
 		for (let i: number = 0; i < rule.length; i++) {
 			const length = rule[i]!;
 
-			const senryus = new Array<RawSenryu>();
-			for (const id in databaseSenryu.data) {
-				const senryu = databaseSenryu.data[id]!;
+			const senryus = new Array<RawSenryuGuildSenryu>();
+			databaseSenryu.forEachSenryu(guild, (senryu, id) => {
 				if (senryu.rule[i] === length) senryus.push(senryu);
-			}
+			});
 			if (senryus.length === 0) return undefined;
 
 			const senryu = senryus[Math.floor(Math.random() * senryus.length)]!;
