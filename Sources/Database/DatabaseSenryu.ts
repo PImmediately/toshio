@@ -12,6 +12,9 @@ export interface RawSenryuGuild {
 }
 
 export interface RawSenryuGuildConfig {
+	enabled: boolean;
+	"channel.include": Discord.Snowflake[];
+	"channel.exclude": Discord.Snowflake[];
 }
 
 export interface RawSenryuGuildSenryu {
@@ -47,6 +50,9 @@ export default class DatabaseSenryu extends Database<RawSenryu> {
 
 		this.data[guild] = {
 			config: {
+				enabled: true,
+				"channel.include": [],
+				"channel.exclude": []
 			},
 			senryu: {}
 		};

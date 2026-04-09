@@ -39,9 +39,6 @@ export interface Configuration {
 			enabled: boolean;
 			channel: string;
 		};
-		"senryu": {
-			enabled: boolean;
-		};
 	};
 	log: {
 		enabled: boolean;
