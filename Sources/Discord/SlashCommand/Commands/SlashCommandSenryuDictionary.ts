@@ -33,15 +33,14 @@ export default class SlashCommandSenryuDictionary extends SlashCommand {
 						Object.entries(contentsEachRule).map(([rule, contents]) => {
 							const countEachContent: Record<string, number> = {};
 							contents.forEach((content) => {
-								if (!countEachContent[content]) countEachContent[content] = 0;
-								countEachContent[content]++;
+								countEachContent[content] = (countEachContent[content] ?? 0) + 1;
 							});
 
 							const ranking = Object.entries(countEachContent)
 								.sort((a, b) => b[1] - a[1])
 								.slice(0, 10)
-								.map(([content, count], index) => {
-									return `**${index + 1}位** ${content}（${count}回）`;
+								.map(([content, count]) => {
+									return `${content}（${count}回）`;
 								})
 								.join("\n");
 
