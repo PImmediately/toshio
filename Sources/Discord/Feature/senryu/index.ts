@@ -37,17 +37,17 @@ export default class FeatureSenryu extends Feature {
 		if (guildOnDatabase.config["channel.exclude"].includes(message.channelId)) return;
 
 		if (message.content === "詠め") {
-			await this.replySenryuWrite(message);
+			await this.replyCreationSenryu(message);
 			return;
 		} else if (message.content === "詠むな") {
-			await this.replySenryuStopWriting(message);
+			await this.replyLatestSenryu(message);
 			return;
 		} else {
 			await this.checkSenryu(message);
 		}
 	}
 
-	private async replySenryuWrite(message: Discord.Message<true>): Promise<Discord.Message> {
+	private async replyCreationSenryu(message: Discord.Message<true>): Promise<Discord.Message> {
 		const createdSenryu = this.createSenryuFromDatabase(message.guildId, DatabaseSenryu.RULE);
 		if (!createdSenryu) {
 			return await message.reply({
@@ -69,7 +69,7 @@ export default class FeatureSenryu extends Feature {
 		});
 	}
 
-	private async replySenryuStopWriting(message: Discord.Message<true>): Promise<Discord.Message<true>> {
+	private async replyLatestSenryu(message: Discord.Message<true>): Promise<Discord.Message<true>> {
 		const latestSenryu = this.databaseSenryu.sortSenryu(message.guildId, (a, b) => {
 			if (!a.createdAt) return 1;
 			if (!b.createdAt) return -1;
