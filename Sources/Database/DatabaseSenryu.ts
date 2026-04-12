@@ -41,12 +41,12 @@ export default class DatabaseSenryu extends Database<RawSenryu> {
 		});
 	}
 
-	public findGuild(id: Discord.Snowflake): RawSenryuGuild | undefined {
-		return this.data[id];
+	public findGuild(guild: Discord.Snowflake): RawSenryuGuild | undefined {
+		return this.data[guild];
 	}
 
 	public createGuild(guild: Discord.Snowflake): RawSenryuGuild {
-		if (this.data[guild]) throw new Error(`Guild with ID ${guild} already exists.`);
+		if (this.findGuild(guild)) throw new Error(`Guild with ID ${guild} already exists.`);
 
 		this.data[guild] = {
 			config: {
@@ -65,7 +65,7 @@ export default class DatabaseSenryu extends Database<RawSenryu> {
 		return this.findGuild(guild) ?? this.createGuild(guild);
 	}
 
-	public deleteGuild(guild: string): void {
+	public deleteGuild(guild: Discord.Snowflake): void {
 		delete this.data[guild];
 		this.write();
 	}
