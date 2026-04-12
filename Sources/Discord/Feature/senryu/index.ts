@@ -55,6 +55,10 @@ export default class FeatureSenryu extends Feature {
 			});
 		}
 
+		const memberOnDatabase = this.databaseSenryu.findOrCreateMember(message.guildId, message.author.id);
+		memberOnDatabase.senryuCreationCount++;
+		this.databaseSenryu.write();
+
 		const authors = new Set<string>();
 		createdSenryu.senryus.forEach((senryu) => {
 			if (senryu.author) authors.add(senryu.author);

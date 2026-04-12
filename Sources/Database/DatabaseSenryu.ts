@@ -8,7 +8,12 @@ export type RawSenryu = Record<string, RawSenryuGuild>;
 
 export interface RawSenryuGuild {
 	config: RawSenryuGuildConfig;
+	member: Record<Discord.Snowflake, RawSenryuGuildMember>;
 	senryu: Record<string, RawSenryuGuildSenryu>;
+}
+
+export interface RawSenryuGuildMember {
+	senryuCreationCount: number;
 }
 
 export interface RawSenryuGuildConfig {
@@ -54,6 +59,7 @@ export default class DatabaseSenryu extends Database<RawSenryu> {
 				"channel.include": [],
 				"channel.exclude": []
 			},
+			member: {},
 			senryu: {}
 		};
 		this.write();
@@ -75,6 +81,27 @@ export default class DatabaseSenryu extends Database<RawSenryu> {
 			const guild = this.data[guildID]!;
 			callback(guild, guildID);
 		}
+	}
+
+	public findMember(guild: Discord.Snowflake, member: Discord.Snowflake): RawSenryuGuildMember | undefined {
+		const guildOnDatabase = this.findOrCreateGuild(guild);
+		return guildOnDatabase.member[member];
+	}
+
+	public createMember(guild: Discord.Snowflake, member: Discord.Snowflake): RawSenryuGuildMember {
+		const guildOnDatabase = this.findOrCreateGuild(guild);
+		if (this.findMember(guild, member)) throw new Error(`Member with ID ${member} already exists in guild with ID ${guild}.`);
+
+		guildOnDatabase.member[member] = {
+			senryuCreationCount: 0
+		};
+
+		this.write();
+		return this.findMember(guild, member)!;
+	}
+
+	public findOrCreateMember(guild: Discord.Snowflake, member: Discord.Snowflake): RawSenryuGuildMember {
+		return this.findMember(guild, member) ?? this.createMember(guild, member);
 	}
 
 	public findSenryu(guild: Discord.Snowflake, id: string): RawSenryuGuildSenryu | undefined;
