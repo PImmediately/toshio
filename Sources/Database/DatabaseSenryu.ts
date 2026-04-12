@@ -100,8 +100,22 @@ export default class DatabaseSenryu extends Database<RawSenryu> {
 		return this.findMember(guild, member)!;
 	}
 
+	public deleteMember(guild: Discord.Snowflake, member: Discord.Snowflake): void {
+		const guildOnDatabase = this.findOrCreateGuild(guild);
+		delete guildOnDatabase.member[member];
+		this.write();
+	}
+
 	public findOrCreateMember(guild: Discord.Snowflake, member: Discord.Snowflake): RawSenryuGuildMember {
 		return this.findMember(guild, member) ?? this.createMember(guild, member);
+	}
+
+	public forEachMember(guild: Discord.Snowflake, callback: (raw: RawSenryuGuildMember, id: string) => void): void {
+		const guildOnDatabase = this.findOrCreateGuild(guild);
+		for (const memberID in guildOnDatabase.member) {
+			const member = guildOnDatabase.member[memberID]!;
+			callback(member, memberID);
+		}
 	}
 
 	public findSenryu(guild: Discord.Snowflake, id: string): RawSenryuGuildSenryu | undefined;

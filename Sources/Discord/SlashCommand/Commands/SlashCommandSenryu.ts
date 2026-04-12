@@ -23,6 +23,11 @@ export default class SlashCommandSenryu extends SlashCommand {
 					return subgroup
 						.setName("dictionary")
 						.setDescription("句の出現回数を送信します。");
+				})
+				.addSubcommand((subgroup) => {
+					return subgroup
+						.setName("creation")
+						.setDescription("詠者が作成した川柳の回数を送信します。");
 				});
 		});
 
