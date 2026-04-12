@@ -1,36 +1,35 @@
 import Discord from "discord.js";
 import SlashCommand from "./SlashCommand";
 
-import SlashCommandSenryuRank from "./SlashCommandSenryuRank";
-import SlashCommandSenryuDictionary from "./SlashCommandSenryuDictionary";
+import SlashCommandSenryuStatistics from "./SlashCommandSenryuStatistics";
 
 export default class SlashCommandSenryu extends SlashCommand {
 
-	private readonly senryuRank = new SlashCommandSenryuRank();
-	private readonly senryuDictionary = new SlashCommandSenryuDictionary();
+	private readonly senryuStatistics = new SlashCommandSenryuStatistics();
 
 	override readonly command = new Discord.SlashCommandBuilder()
 		.setName("senryu")
 		.setDescription("川柳に関するコマンド")
-		.addSubcommand((group) => {
+		.addSubcommandGroup((group) => {
 			return group
-				.setName("rank")
-				.setDescription("川柳ランキングを送信します。");
-		})
-		.addSubcommand((group) => {
-			return group
-				.setName("dictionary")
-				.setDescription("句の出現回数を送信します。");
+				.setName("statistics")
+				.setDescription("川柳の統計に関するコマンド")
+				.addSubcommand((subgroup) => {
+					return subgroup
+						.setName("detection")
+						.setDescription("川柳が検出された回数を送信します。");
+				})
+				.addSubcommand((subgroup) => {
+					return subgroup
+						.setName("dictionary")
+						.setDescription("句の出現回数を送信します。");
+				});
 		});
 
 	override onExecute(interaction: Discord.ChatInputCommandInteraction<Discord.CacheType>): void {
-		switch (interaction.options.getSubcommand()) {
-			case "rank": {
-				this.senryuRank.onExecute(interaction);
-				return;
-			}
-			case "dictionary": {
-				this.senryuDictionary.onExecute(interaction);
+		switch (interaction.options.getSubcommandGroup()) {
+			case "statistics": {
+				this.senryuStatistics.onExecute(interaction);
 				return;
 			}
 		}

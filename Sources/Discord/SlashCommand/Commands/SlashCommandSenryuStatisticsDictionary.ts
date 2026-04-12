@@ -1,7 +1,7 @@
 import Discord from "discord.js";
 import SlashCommand from "./SlashCommand";
 
-export default class SlashCommandSenryuDictionary extends SlashCommand {
+export default class SlashCommandSenryuStatisticsDictionary extends SlashCommand {
 
 	override readonly command = undefined;
 

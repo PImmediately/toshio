@@ -3,7 +3,7 @@ import SlashCommand from "./SlashCommand";
 
 import type { RawSenryuGuildSenryu } from "./../../../Database/DatabaseSenryu";
 
-export default class SlashCommandSenryuRank extends SlashCommand {
+export default class SlashCommandSenryuStatisticsDetection extends SlashCommand {
 
 	override readonly command = undefined;
 
@@ -33,7 +33,7 @@ export default class SlashCommandSenryuRank extends SlashCommand {
 		await interaction.reply({
 			embeds: [
 				new Discord.EmbedBuilder()
-					.setTitle("川柳ランキング")
+					.setTitle("川柳の検出回数")
 					.setDescription(
 						entries.map(([author, senryus], index) => {
 							const count = senryus.length;
